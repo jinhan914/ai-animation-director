@@ -1,7 +1,12 @@
 # Director — AI Animation Director
 
-**SLAY HACKS 2026 entry (solo).** Prize $4,500 · Deadline 7 Dec 2026, 17:00 EST ·
-[slayy-hacks.devpost.com](https://slayy-hacks.devpost.com/)
+## Submission Notes
+
+First submitted to **SLAY HACKS 2026** (Devpost submission 1313839, 21 November 2026). The identical code is reused for **Arbiter Hacks V1, General Track**, with no code changes — only docs and submission materials were updated. Repository, live demo and demo video are the same as the original submission.
+
+- Live demo: https://jinhan914.github.io/ai-animation-director/
+- Demo video (2:28): https://www.youtube.com/watch?v=ik9ft3-u9qg
+- SLAY HACKS 2026 submission: https://devpost.com/software/director-ai-animation-director
 
 Type a script. Director casts the animation.
 
@@ -117,63 +122,7 @@ inside a card, no numbered 01 Discover heading.
 - Two real bugs found and fixed by the first round of testing: a duplicate
   `id="decisions"` that wiped the stats panel, and centred canvas titles
   drawn off-centre.
-- Doubao polish round 1 (2026-11-21, 16 issues) — all P0/P1 implemented and
-  re-tested in real Chrome 158 (desktop 1280px + mobile 390px), classifier
-  still 12/12:
-  - Export JSON: try/catch, >120 KB confirm, anchor appended to the DOM,
-    success/failure feedback, object URL revoked.
-  - Classifier: minimum activation threshold plus a deterministic tie-break
-    (formula > diagram > particles > orbit > kinetic within 1 point).
-    Caught and fixed in testing: the first contender filter also matched
-    zero-score kinds, which flipped a "light"-only scene to Manim.
-  - Canvas buffer now follows its container via `resizeCanvas()` (logical
-    960×540 space, scaled with `setTransform`); `ResizeObserver` + resize
-    on theme/scene change. Buffer measured 758×426 at a 1280px viewport.
-  - `visibilitychange` pauses the player when the tab is hidden; stale
-    rAF is cancelled before a new loop is scheduled.
-  - Copy failure now says "please select & copy manually" and restores
-    the button text after 1.5 s (verified in headless, where clipboard
-    is unavailable).
-  - Preset chips fill the textarea only — they no longer auto-analyze
-    and wipe the cut being watched.
-  - Scene tabs now show a thin visible scrollbar instead of a hidden one.
-  - Light theme: the code panel is now a real light panel (dark text on
-    white, dark-green keywords) instead of light-green text on a dark
-    panel; other light leftovers audited.
-  - Scrub `oninput` only redraws + updates the clock; the full UI refresh
-    happens on `change` (drag release).
-  - `classify` never returns an empty signal list; `sceneJob` has a
-    safe default return.
-  - Generated code now has lightweight keyword/string/comment
-    highlighting with the existing `.k`/`.s`/`.c` classes, no new library.
-  - P2 items done too: empty/symbol-only input is rejected with an alert;
-    decision text wraps anywhere; particle count scales 80–220 by word
-    count; the internal submission checklist was moved out of the public
-    README into a private note.
-- Doubao polish round 2 (2026-11-21) — Doubao verified all 15 round-1
-  fixes correct, no new bugs, and decided: keep minimum activation = 1,
-  do not raise it, no per-kind thresholds. Implemented:
-  - Formula scene: the amber key-sentence line under the curve is gone —
-    the title appears once; axes, growth curve and bottom words/time text
-    unchanged. Key sentence still in Director's choices and generated code.
-  - `escHtml`: Doubao flagged a stray space in the `>` escape regex, but
-    the code was checked byte-for-byte and already reads `/>/g` — no
-    change needed, no bare `>` can leak through.
-  - `play()` with no scenes now shows a hint alert instead of returning
-    silently.
-  - `VIDEO_SCRIPT.md` updated to the new flow: preset fills the textarea
-    only, then the user clicks "Direct my animation".
-  - The three previously untested paths were exercised headlessly: >120 KB
-    export shows "Storyboard is 194 KB — download anyway?" (decline
-    leaves the button unchanged, confirm downloads and shows "Saved ✓");
-    `visibilitychange` pauses playback (time frozen, button back to ▶);
-    http clipboard fallback shows the manual-copy message and restores.
-  - Classifier still 12/12 (launch: Anime.js ×3 + Proton — scene 3 wins
-    Proton on four particle signals "burst", "launch", "particles",
-    "light"; maths: Motion Canvas + Manim ×3; story: Three.js + Anime.js
-    + Proton ×2). Desktop 1280px + mobile 390px, zero app errors.
-  - Fresh screenshots: `r2-formula-stage.png` (title once, curve + axes
-    intact), `r2-mobile-stage.png` (390px, no overflow, no collision).
+- Three rounds of review with an AI reviewer (Doubao) before the first submission; final verification: real Chrome 158, desktop 1280px + mobile 390px, all three presets end-to-end (play, pause, scene nav, scrub, pacing, code view, storyboard export), zero app errors, classifier 12/12.
 
 ## Status
 
