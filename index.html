@@ -150,7 +150,7 @@ footer p{margin:4px 0}
 <header class="topbar"><div class="wrap">
   <div class="logo"><span class="dot"></span>Director</div>
   <nav><a href="#studio">Studio</a><a href="#decisions-section">Director's choices</a><a href="#code">Generated code</a><a href="#how">How it works</a></nav>
-  <span class="pill">SLAY HACKS 2026</span>
+  <span class="pill">SLAY HACKS 2026 · Also submitted to Arbiter Hacks V1</span>
 </div></header>
 
 <main class="wrap">
@@ -230,7 +230,7 @@ footer p{margin:4px 0}
 
 <footer><div class="wrap">
   <p><b style="color:var(--text)">Director</b> — AI Animation Director. SLAY HACKS 2026 entry, solo. Built with vanilla JavaScript and Canvas 2D; the in-browser player demonstrates the casting engine. The full production pipeline (Remotion for narrated video, Manim for maths, Motion Canvas for diagrams) is documented in the repo README.</p>
-  <p>Prize: $4,500 · Deadline: 7 Dec 2026, 17:00 EST · Demo, screenshots, GitHub repo and a 2–4 minute video are part of the submission.</p>
+  <p>Also entered in Arbiter Hacks V1 General Track (code unchanged). Demo, screenshots, GitHub repo and a 2–4 minute video are part of the submission.</p>
 </div></footer>
 
 <script>
@@ -269,8 +269,11 @@ const LIBRARY_LIST = [
   ["Konva","Interactive 2D canvas","Whiteboards, editors and diagram tools — anything the user drags and edits.","https://github.com/konvajs/konva"],
   ["Lottie Web","Light vector playback","Plays After Effects JSON. A player only — it never creates the animation.","https://github.com/airbnb/lottie-web"],
   ["Proton","2D particles","Bursts, trails and fields on a canvas. Check maintenance before betting a long-lived project on it.","https://github.com/drawcall/Proton"],
-  ["Blender / Godot","3D character · game","Rendered 3D and games. Never the right tool for a light web UI animation.","https://github.com/blender/blender"],
-  ["Ola · Shifty · TweenJS","Tweening layers only","Interpolation, not a complete solution. They need a caller to render and drive the result.","https://github.com/jeremyckahn/shifty"],
+  ["Blender","3D character · render","Rendered 3D. Never the right tool for a light web UI animation.","https://github.com/blender/blender"],
+  ["Godot","Game","Games. Never the right tool for a light web UI animation.","https://github.com/godotengine/godot"],
+  ["Ola","Tweening layer only","Smooth real-time numeric interpolation. A layer, not a complete solution — it needs a caller to render and drive the result.","https://github.com/franciscop/ola"],
+  ["Shifty","Tweening layer only","Interpolation, not a complete solution. It needs a caller to render and drive the result.","https://github.com/jeremyckahn/shifty"],
+  ["TweenJS","Tweening layer only","Interpolation, not a complete solution. It needs a caller to render and drive the result.","https://github.com/CreateJS/TweenJS"],
 ];
 /* ---------- Presets ---------- */
 const PRESETS = {
@@ -771,6 +774,7 @@ $("exportBtn").onclick = ()=>{
   const btn = $("exportBtn"), orig = btn.textContent;
   try{
     const data = {project:"Director — AI Animation Director", hackathon:"SLAY HACKS 2026",
+      additional_submissions:["Arbiter Hacks V1 General Track (code identical)"],
       totalSeconds: +totalDur().toFixed(1),
       scenes: scenes.map(s=>({scene:s.i+1, title:s.title, words:s.words, seconds:+s.dur.toFixed(1),
         library:s.lib.name, engine:s.lib.engine, signal:s.signal, reason:s.lib.why, text:s.text}))};
