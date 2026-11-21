@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Director — AI Animation Director</title>
+<meta name="description" content="Type a script. Director picks the right animation library for every scene, generates the animation, and plays it back in the browser.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%23c8f542'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#101010; --surface:#171715; --surface2:#1e1e1a; --border:#2b2b26; --border2:#3a3a33;
+  --text:#f2f1ec; --muted:#a6a59d; --faint:#6f6e66;
+  --lime:#c8f542; --limeText:#c8f542; --violet:#8b7cff; --amber:#ffb454; --blue:#6ec3ff; --pink:#ff7ab8;
+  --radius:14px;
+}
+body[data-theme="light"]{
+  --bg:#f2f1ec; --surface:#ffffff; --surface2:#e9e8e1; --border:#d9d8cf; --border2:#c3c2b7;
+  --text:#161614; --muted:#5b5a53; --faint:#8b8a7e; --limeText:#3f7a00;
+}
+body[data-theme="light"] .topbar{background:rgba(242,241,236,.88)}
+body[data-theme="light"] textarea#script, body[data-theme="light"] select{background:#fff}
+body[data-theme="light"] .scene-tab.active{background:#eef7d0}
+body[data-theme="light"] .code-panel{background:#ffffff}
+body[data-theme="light"] .code-panel pre{color:var(--text)}
+body[data-theme="light"] .code-panel .k{color:var(--limeText)}
+body[data-theme="light"] .code-panel .s{color:#a86a00}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3,.display{font-family:"Space Grotesk",Inter,system-ui,sans-serif;letter-spacing:-.02em;line-height:1.08;margin:0}
+a{color:var(--lime)}
+button{font:inherit;cursor:pointer}
+input,select,textarea{font:inherit;color:inherit}
+.wrap{max-width:1200px;margin:0 auto;padding:0 20px}
+.topbar{position:sticky;top:0;z-index:20;background:rgba(16,16,16,.88);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+.topbar .wrap{display:flex;align-items:center;gap:16px;height:60px}
+.logo{display:flex;align-items:center;gap:10px;font-family:"Space Grotesk",sans-serif;font-weight:700;font-size:19px;letter-spacing:-.02em}
+.logo .dot{width:12px;height:12px;border-radius:50%;background:var(--lime);box-shadow:0 0 0 4px rgba(200,245,66,.18)}
+.topbar nav{margin-left:auto;display:flex;gap:4px;font-size:14px}
+.topbar nav a{color:var(--muted);text-decoration:none;padding:8px 12px;border-radius:8px}
+.topbar nav a:hover{color:var(--text);background:var(--surface2)}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#0f0f0e;background:var(--lime);border-radius:999px;padding:5px 10px}
+.hero{padding:56px 0 28px}
+.hero h1{font-size:clamp(40px,6vw,72px);max-width:880px}
+.hero h1 em{font-style:normal;color:var(--limeText)}
+.hero p.lede{font-size:19px;color:var(--muted);max-width:720px;margin:18px 0 0}
+.hero p.lede b{color:var(--text);font-weight:600}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:28px 0 0}
+.step{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px}
+.step .n{font-family:"Space Grotesk",sans-serif;font-weight:700;color:var(--limeText);font-size:13px;letter-spacing:.08em}
+.step h3{font-size:16px;margin:8px 0 4px}
+.step p{margin:0;color:var(--muted);font-size:14px}
+.grid{display:grid;grid-template-columns:380px minmax(0,1fr);gap:20px;align-items:start;padding:24px 0 8px}
+.grid>*{min-width:0}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.panel h2{font-size:18px;margin-bottom:6px}
+.panel .sub{color:var(--muted);font-size:14px;margin:0 0 16px}
+label.field{display:block;font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:16px 0 6px}
+label.field:first-of-type{margin-top:0}
+textarea#script{width:100%;min-height:220px;resize:vertical;background:#0c0c0a;border:1px solid var(--border2);border-radius:10px;padding:12px 14px;font-size:15px;line-height:1.6;color:var(--text)}
+textarea#script:focus{outline:2px solid var(--lime);outline-offset:1px}
+.presets{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:999px;padding:7px 12px;font-size:13px;font-weight:500}
+.chip:hover{border-color:var(--lime);color:var(--lime)}
+.chip.active{background:var(--lime);color:#0f0f0e;border-color:var(--lime)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+select{background:#0c0c0a;border:1px solid var(--border2);border-radius:8px;padding:9px 10px;font-size:14px}
+.btn{border:0;border-radius:10px;padding:12px 18px;font-weight:600;font-size:15px}
+.btn-primary{background:var(--lime);color:#0f0f0e}
+.btn-primary:hover{filter:brightness(1.08)}
+.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--text)}
+.btn-ghost:hover{border-color:var(--text)}
+.btn-block{width:100%;margin-top:16px}
+.hint{font-size:13px;color:var(--faint);margin:10px 0 0}
+.stage-wrap{position:sticky;top:76px;min-width:0}
+.stage{position:relative;background:#0a0a09;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.stage canvas{display:block;width:100%;height:auto;aspect-ratio:16/9}
+.stage-overlay{position:absolute;left:16px;top:14px;display:flex;gap:8px;align-items:center}
+.tag{font-size:12px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;background:rgba(16,16,16,.72);border:1px solid var(--border2);border-radius:999px;padding:5px 10px;color:#f2f1ec}
+.tag.lib{color:var(--lime);border-color:rgba(200,245,66,.5)}
+.transport{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--surface);border:1px solid var(--border);border-top:0;border-radius:0 0 var(--radius) var(--radius)}
+.transport button.play{width:44px;height:44px;border-radius:50%;border:0;background:var(--lime);color:#0f0f0e;font-size:17px;line-height:1;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.transport button.step{width:36px;height:36px;border-radius:50%;border:1px solid var(--border2);background:transparent;color:var(--text);font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.progress{flex:1 1 120px;min-width:0}
+.progress input[type=range]{width:100%;min-width:0;accent-color:var(--lime)}
+.time{flex-shrink:0;font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--muted);white-space:nowrap}
+.scenes{display:flex;gap:8px;margin-top:12px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin;scrollbar-color:var(--border2) transparent}
+.scenes::-webkit-scrollbar{display:block;height:6px}
+.scenes::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+.scenes::-webkit-scrollbar-track{background:transparent}
+.scene-tab{flex:1 1 0;min-width:0;text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text)}
+.scene-tab.active{border-color:var(--lime);background:#1d2210}
+.scene-tab .s-n{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--limeText)}
+.scene-tab .s-t{font-size:13px;font-weight:600;margin:3px 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scene-tab .s-m{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.section{padding:28px 0}
+.section h2{font-size:26px;margin-bottom:6px}
+.section .sub{color:var(--muted);margin:0 0 18px;max-width:720px}
+.decisions{display:grid;gap:12px}
+.decision{display:grid;grid-template-columns:64px 1fr 1.1fr;gap:16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;align-items:start}
+.decision .num{font-family:"Space Grotesk",sans-serif;font-size:28px;font-weight:700;color:var(--faint)}
+.decision h3{font-size:17px}
+.decision h3 .lib{color:var(--limeText)}
+.decision .sig{font-size:13px;color:var(--muted);margin-top:8px}
+.decision .sig b{color:var(--text)}
+.decision p{margin:6px 0 0;color:var(--muted);font-size:14px;overflow-wrap:anywhere}
+.decision .why{font-size:14px;overflow-wrap:anywhere}
+.decision .sig{overflow-wrap:anywhere}
+.decision .why{font-size:14px}
+.decision .why b{color:var(--text)}
+.decision .not{font-size:13px;color:var(--faint);margin-top:8px}
+.decision .job{font-size:13px;color:var(--text);margin-top:8px}
+.code-panel{background:#0c0c0a;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.code-head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border)}
+.code-head b{font-size:14px}
+.code-head span{color:var(--muted);font-size:13px}
+.code-head button{margin-left:auto}
+pre{margin:0;padding:18px 20px;overflow-x:auto;font-family:"JetBrains Mono",monospace;font-size:13px;line-height:1.7;color:#d8e6c2;white-space:pre}
+pre .c{color:#6f6e66}
+pre .k{color:var(--lime)}
+pre .s{color:var(--amber)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px}
+.stat .v{font-family:"Space Grotesk",sans-serif;font-size:30px;font-weight:700}
+.stat .k{font-size:13px;color:var(--muted);margin-top:2px}
+footer{border-top:1px solid var(--border);padding:28px 0 40px;color:var(--faint);font-size:13px}
+footer p{margin:4px 0}
+@media (max-width:900px){
+  .grid{grid-template-columns:1fr}
+  .stage-wrap{position:static}
+  .steps{grid-template-columns:1fr}
+  .decision{grid-template-columns:1fr}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .topbar nav{display:none}
+  .scene-tab{flex:0 0 auto;min-width:150px}
+}
+@media (max-width:600px){
+  /* The stage is short on a phone, so the overlay pills must stay small
+     and the canvas titles must start lower, or they collide. */
+  .stage-overlay{left:8px;top:8px}
+  .stage-overlay .tag{font-size:10px;padding:3px 8px}
+  .stage-overlay .tag:not(.lib){display:none}
+}
+</style>
+</head>
+<body>
+<header class="topbar"><div class="wrap">
+  <div class="logo"><span class="dot"></span>Director</div>
+  <nav><a href="#studio">Studio</a><a href="#decisions-section">Director's choices</a><a href="#code">Generated code</a><a href="#how">How it works</a></nav>
+  <span class="pill">SLAY HACKS 2026</span>
+</div></header>
+
+<main class="wrap">
+  <section class="hero">
+    <h1>Type a script.<br><em>Director</em> casts the animation.</h1>
+    <p class="lede">Most tools ask you to pick a library first. <b>Director does the opposite:</b> it reads your script, splits it into scenes, and picks the right animation library for every scene — then generates the animation and plays it back in your browser.</p>
+    <div class="steps">
+      <div class="step"><div class="n">01 — WRITE</div><h3>Script in, scenes out</h3><p>One idea per scene. Director splits on blank lines, headings, or sentences — and times each scene from its word count.</p></div>
+      <div class="step"><div class="n">02 — CAST</div><h3>The right library, per scene</h3><p>Data gets a diagram engine. A formula gets Manim. A launch gets particles. Every choice comes with a plain-language reason.</p></div>
+      <div class="step"><div class="n">03 — PLAY</div><h3>Preview is the product</h3><p>Watch the whole cut, scrub the timeline, re-cast a scene, or edit the script and regenerate. The code is the source of truth.</p></div>
+    </div>
+  </section>
+
+  <section class="grid" id="studio">
+    <div class="panel">
+      <h2>Your script</h2>
+      <p class="sub">Paste a script, a product pitch, or a lesson. Blank lines start a new scene.</p>
+      <label class="field" for="script">Script</label>
+      <textarea id="script" spellcheck="false"></textarea>
+      <label class="field">Try one</label>
+      <div class="presets" id="presets"></div>
+      <label class="field" for="pacing">Pacing</label>
+      <div class="row">
+        <select id="pacing">
+          <option value="calm">Calm — 130 words / min</option>
+          <option value="standard" selected>Standard — 150 words / min</option>
+          <option value="punchy">Punchy — 185 words / min</option>
+        </select>
+        <select id="style" title="Visual style">
+          <option value="dark">Dark studio</option>
+          <option value="light">Light paper</option>
+        </select>
+      </div>
+      <button class="btn btn-primary btn-block" id="analyze">▶&nbsp; Direct my animation</button>
+      <button class="btn btn-ghost btn-block" id="exportBtn" style="margin-top:10px">Download storyboard (.json)</button>
+      <p class="hint">Runs entirely in your browser. No upload, no account, no render queue.</p>
+    </div>
+
+    <div class="stage-wrap">
+      <div class="stage">
+        <canvas id="stage" width="960" height="540"></canvas>
+        <div class="stage-overlay"><span class="tag lib" id="stageLib">—</span><span class="tag" id="stageScene">Scene 1</span></div>
+      </div>
+      <div class="transport">
+        <button class="step" id="prevBtn" aria-label="Previous scene">←</button>
+        <button class="play" id="playBtn" aria-label="Play or pause">▶</button>
+        <button class="step" id="nextBtn" aria-label="Next scene">→</button>
+        <div class="progress"><input type="range" id="scrub" min="0" max="1000" value="0" aria-label="Timeline"></div>
+        <span class="time" id="timeLabel">0:00 / 0:00</span>
+      </div>
+      <div class="scenes" id="sceneTabs"></div>
+    </div>
+  </section>
+
+  <section class="section" id="decisions-section">
+    <h2>Director's choices</h2>
+    <p class="sub">Every scene gets one library — chosen for what the scene is, not for what is fashionable. The rejected options are listed so the choice can be argued with.</p>
+    <div class="stats" id="stats" style="margin-bottom:16px"></div>
+    <div class="decisions" id="decisions"></div>
+  </section>
+
+  <section class="section" id="code">
+    <h2>Generated code</h2>
+    <p class="sub">This is the real code that drives the scene you are watching. Change the script and it regenerates — the code, not a video file, is the source of truth.</p>
+    <div class="code-panel">
+      <div class="code-head"><b id="codeTitle">Scene 1</b><span id="codeSub"></span><button class="btn btn-ghost" id="copyBtn" style="padding:8px 14px;font-size:13px">Copy code</button></div>
+      <pre id="codeView"></pre>
+    </div>
+  </section>
+
+  <section class="section" id="how">
+    <h2>How it works</h2>
+    <p class="sub">Director's casting rules come from a systematic study of 18 free, open-source animation and video libraries — when each one fits, and when it does not.</p>
+    <div class="decisions" id="libraryList"></div>
+  </section>
+</main>
+
+<footer><div class="wrap">
+  <p><b style="color:var(--text)">Director</b> — AI Animation Director. SLAY HACKS 2026 entry, solo. Built with vanilla JavaScript and Canvas 2D; the in-browser player demonstrates the casting engine. The full production pipeline (Remotion for narrated video, Manim for maths, Motion Canvas for diagrams) is documented in the repo README.</p>
+  <p>Prize: $4,500 · Deadline: 7 Dec 2026, 17:00 EST · Demo, screenshots, GitHub repo and a 2–4 minute video are part of the submission.</p>
+</div></footer>
+
+<script>
+"use strict";
+/* ---------- Library knowledge (from the 18-library study) ---------- */
+const LIBRARIES = {
+  kinetic: {name:"Anime.js", tag:"kinetic type", color:"#c8f542",
+    why:"Words are the content here. Anime.js is a small, framework-free timeline engine — stagger, easing and transforms with no build step — so the type itself can carry the scene.",
+    not:"Remotion would be overkill for a live web preview, and Manim is for maths, not headlines.",
+    engine:"anime-timeline"},
+  diagram: {name:"Motion Canvas", tag:"diagram engine", color:"#6ec3ff",
+    why:"This scene is data. Motion Canvas is built for code-driven diagram and explainer animation — bars, lines and labels that animate from the numbers themselves.",
+    not:"A chart library would draw a static picture; a video tool would need a re-render for every number change.",
+    engine:"motion-canvas"},
+  formula: {name:"Manim", tag:"maths explainer", color:"#ffb454",
+    why:"A formula needs to be written, transformed and read step by step. Manim (community edition) is the tool built exactly for that — maths first, decoration second.",
+    not:"Anime.js can move text, but it has no notion of a mathematical object or a transformation between two forms.",
+    engine:"manim"},
+  orbit: {name:"Three.js", tag:"light 3D scene", color:"#8b7cff",
+    why:"This scene is spatial — orbits, rotation, depth. Three.js is the light choice for a custom 3D scene on the web; no full game engine is needed.",
+    not:"Babylon.js is a complete engine with a playground and inspector — too much machinery for one rotating scene.",
+    engine:"three"},
+  particles: {name:"Proton", tag:"particle engine", color:"#ff7ab8",
+    why:"This scene is energy, not information. Proton is a 2D particle engine — bursts, trails and fields — and it stays inside the page instead of needing a video render.",
+    not:"gifenc only encodes frames you already have; it cannot invent motion.",
+    engine:"proton"},
+};
+const LIBRARY_LIST = [
+  ["Remotion","Narrated / promo video","When the output must be an MP4 file, not a live page. React + interpolate + useCurrentFrame, rendered to video.","https://github.com/remotion-dev/remotion"],
+  ["Manim","Maths explainer video","Community edition. A formula is a Mobject; a proof is a transformation between Mobjects.","https://github.com/ManimCommunity/manim"],
+  ["Motion Canvas","Diagram explainer","Code-driven scenes with generators; preview in the editor, export as frames or video.","https://github.com/motion-canvas/motion-canvas"],
+  ["Motion","Web UI motion (React / Vue)","Spring-based UI motion. The right pick when the animation lives inside a product.","https://github.com/motiondivision/motion"],
+  ["Anime.js","Lightweight web motion","Small, framework-free timelines with stagger. The pick for kinetic type on a plain page.","https://github.com/juliangarnier/anime"],
+  ["Three.js","Light web 3D","A custom 3D scene with no engine overhead. The pick for one orbit, one object, one camera.","https://github.com/mrdoob/three.js"],
+  ["Babylon.js","Full web 3D engine","Playground, inspector and GUI included. The pick when the scene needs an engine, not just a renderer.","https://github.com/BabylonJS/Babylon.js"],
+  ["Konva","Interactive 2D canvas","Whiteboards, editors and diagram tools — anything the user drags and edits.","https://github.com/konvajs/konva"],
+  ["Lottie Web","Light vector playback","Plays After Effects JSON. A player only — it never creates the animation.","https://github.com/airbnb/lottie-web"],
+  ["Proton","2D particles","Bursts, trails and fields on a canvas. Check maintenance before betting a long-lived project on it.","https://github.com/drawcall/Proton"],
+  ["Blender / Godot","3D character · game","Rendered 3D and games. Never the right tool for a light web UI animation.","https://github.com/blender/blender"],
+  ["Ola · Shifty · TweenJS","Tweening layers only","Interpolation, not a complete solution. They need a caller to render and drive the result.","https://github.com/jeremyckahn/shifty"],
+];
+/* ---------- Presets ---------- */
+const PRESETS = {
+  launch: {label:"Product launch", text:
+`Meet Director. The first animation tool that reads your script before it touches a pixel.
+
+You type the words. Director splits them into scenes, times each one, and casts the right library for every moment.
+
+Data becomes a living diagram. A formula is written out, step by step. A launch becomes a burst of light — 200 particles, zero render time.
+
+No timeline to drag. No keyframes to nudge. Just the script, and the cut.`},
+  maths: {label:"Maths explainer", text:
+`What happens when you add the numbers from 1 to 100?
+
+Pair the first and the last: 1 plus 100 is 101. Pair the next: 2 plus 99 is also 101.
+
+There are 50 such pairs, and every pair sums to 101. So the total is 50 times 101.
+
+That is 5,050 — and Gauss worked it out as a schoolboy, in seconds.`},
+  story: {label:"A short story", text:
+`The city never slept, but on that night the lights went out one by one, like stars blinking off.
+
+Mara stood on the roof with a paper lantern, watching the dark roll in from the harbour.
+
+Then, far below, a single window lit up. Then another. Then a whole street, blooming with light.
+
+Some nights, one small light is all it takes to start the morning.`},
+};
+/* ---------- State ---------- */
+const WPM = {calm:130, standard:150, punchy:185};
+let scenes = [];
+let current = 0;         // scene index
+let sceneT = 0;          // seconds into current scene
+let playing = false;
+let lastTs = null;
+let raf = null;
+const canvas = document.getElementById("stage");
+const ctx = canvas.getContext("2d");
+const $ = id => document.getElementById(id);
+
+/* ---------- Classification ---------- */
+function classify(text){
+  const t = text.toLowerCase();
+  const words = new Set(t.split(/[^a-z0-9]+/).filter(Boolean));
+  const count = (list) => list.reduce((n,w)=> n + (words.has(w) ? 1 : 0), 0);
+  const hits = (list) => list.filter(w => words.has(w));
+  const scores = {diagram:0, formula:0, orbit:0, particles:0, kinetic:0};
+  const hitsByKind = {diagram:[], formula:[], orbit:[], particles:[]};
+  if (/\d/.test(t)) { scores.diagram += 2; hitsByKind.diagram.push("numbers in the text"); }
+  const dHits = hits(["percent","growth","chart","data","numbers","total"]);
+  scores.diagram += 2 * dHits.length; hitsByKind.diagram.push(...dHits.map(w=>`“${w}”`));
+  if (t.includes("%")) { scores.diagram += 2; hitsByKind.diagram.push("“%”"); }
+  const fHits = hits(["formula","equation","plus","sum","sums","pair","pairs","derivative","integral","sqrt","gauss","maths","math"]);
+  scores.formula += 3 * fHits.length; hitsByKind.formula.push(...fHits.map(w=>`“${w}”`));
+  if (t.includes("=") || t.includes("π")) { scores.formula += 3; hitsByKind.formula.push("“=”"); }
+  const oHits = hits(["orbit","orbits","space","star","stars","planet","planets","rotate","rotation","sphere","earth","moon"]);
+  scores.orbit += 3 * oHits.length; hitsByKind.orbit.push(...oHits.map(w=>`“${w}”`));
+  const pHits = hits(["burst","bursts","firework","fireworks","launch","celebrate","bloom","blooming","particle","particles","spark","sparks","energy"]);
+  scores.particles += 2 * pHits.length; hitsByKind.particles.push(...pHits.map(w=>`“${w}”`));
+  if (words.has("light")) { scores.particles += 1; hitsByKind.particles.push("“light”"); }
+  // Minimum activation: a non-kinetic kind must score at least 1, or the
+  // scene is just words. (Threshold is 1, not higher: the story preset's
+  // last scene is carried by a single "light" signal, and the 12/12
+  // preset test requires it to cast as particles.)
+  const PRIORITY = ["formula","diagram","particles","orbit","kinetic"];
+  const top = Math.max(scores.diagram, scores.formula, scores.orbit, scores.particles);
+  let best = "kinetic";
+  if (top >= 1){
+    const contenders = Object.keys(scores).filter(k=>k!=="kinetic" && scores[k] >= 1 && scores[k] >= top-1);
+    best = PRIORITY.find(k=>contenders.includes(k)) || "kinetic";
+  }
+  // Show only the triggers that won the scene, so the reason can be checked.
+  const signal = best === "kinetic"
+    ? ["words, no data or formula signal"]
+    : [...new Set(hitsByKind[best])].slice(0,4);
+  return {kind: best, signal: signal.length ? signal : ["no special signals"]};
+}
+/* Numbers found in a scene's own text drive the diagram bars when there
+   are at least two of them; otherwise the chart says it is a sample. */
+function sceneJob(sc){
+  // The library "why" is the same for every scene of that kind; this line
+  // is what the scene itself asks for, so three Manim scenes do not read
+  // as three copies of one paragraph.
+  if (sc.kind === "diagram") return "turn the numbers in this scene into bars that can be read at a glance.";
+  if (sc.kind === "formula") return "write out “" + keySentence(sc.text) + "” step by step, so the maths is the animation.";
+  if (sc.kind === "orbit") return "put the scene in 3D space, with something to orbit around.";
+  if (sc.kind === "particles") return "a burst of light on the scene's loudest beat.";
+  return "let the words themselves carry the scene — no diagram, no formula, no effect would say it better.";
+}
+/* Default return guard: sceneJob must never fall through undefined. */
+function sceneJobSafe(sc){ try { return sceneJob(sc) || "let the words themselves carry the scene."; } catch(e){ return "let the words themselves carry the scene."; } }
+function numbersFor(text){
+  const found = (text.match(/\d[\d,]*(?:\.\d+)?/g) || []).map(s=>parseFloat(s.replace(/,/g,""))).filter(n=>isFinite(n) && n>0 && n<=1000000).slice(0,5);
+  // Only use the script's own numbers when they can actually be read as
+  // bars: at least two of them, and no more than 20x apart, or one bar
+  // dwarfs the rest into invisibility (e.g. 1 vs 100).
+  const usable = found.length >= 2 && Math.max(...found) / Math.min(...found) <= 20;
+  return usable ? {values: found, fromText: true} : {values: [42,68,35,81,57], fromText: false};
+}
+function keySentence(text){
+  const sents = text.match(/[^.!?]+[.!?]+/g) || [text];
+  return (sents.find(s=>/\d/.test(s)) || sents[0]).trim();
+}
+function titleFor(text, i){
+  const clean = text.replace(/^#+\s*/,"").replace(/^scene\s*\d+[:.\-]\s*/i,"").trim();
+  const words = clean.split(/\s+/).slice(0,5).join(" ");
+  return words.length > 34 ? words.slice(0,34) + "…" : words || ("Scene " + (i+1));
+}
+function parseScript(raw){
+  let blocks = raw.split(/\n\s*\n+/).map(b=>b.trim()).filter(Boolean);
+  if (blocks.length < 2){
+    const sentences = raw.replace(/\n+/g," ").match(/[^.!?]+[.!?]+["']?\s*/g) || [raw];
+    blocks = [];
+    let cur = "";
+    sentences.forEach(s=>{ cur += s; if (cur.split(/\s+/).length >= 22){ blocks.push(cur.trim()); cur=""; } });
+    if (cur.trim()) blocks.push(cur.trim());
+  }
+  const pacing = $("pacing").value;
+  return blocks.slice(0,8).map((text,i)=>{
+    const words = text.split(/\s+/).length;
+    const dur = Math.max(3, Math.min(12, words / WPM[pacing] * 60));
+    const cast = classify(text);
+    return {i, text, title:titleFor(text,i), words, dur, kind: cast.kind, signal: cast.signal, lib:LIBRARIES[cast.kind]};
+  });
+}
+/* ---------- Generated code (the real driver, per scene) ---------- */
+function codeFor(s){
+  const L = s.lib.name;
+  if (s.kind === "diagram") { const nums = numbersFor(s.text); return `// ${L} — scene ${s.i+1}: "${s.title}"
+// ${nums.fromText ? "Data drives the drawing: these values came from the script itself." : "Sample values — put numbers in your script and the bars use them."}
+const values = [${nums.values.join(", ")}];
+const scene = makeScene2D(function* (view) {
+  const bars = values.map((v, i) =>
+    view.add(<Rect width={60} height={v*3} fill="#6ec3ff" />));
+  yield* all(...bars.map((b, i) => b.scale(1, 0.6).to(1, 1.2)));
+  yield* waitFor(${s.dur.toFixed(1)});
+});`; }
+  if (s.kind === "formula") return `// ${L} — scene ${s.i+1}: "${s.title}"
+// A formula is a Mobject; a proof is a transformation.
+class Scene${s.i+1}(Scene):
+    def construct(self):
+        step1 = MathTex(r"${s.text.split(/\s+/).slice(0,6).join(" ")}")
+        step2 = MathTex(r"\\text{transformed}")
+        self.play(Write(step1))
+        self.play(Transform(step1, step2))
+        self.wait(${s.dur.toFixed(1)})`;
+  if (s.kind === "orbit") return `// ${L} — scene ${s.i+1}: "${s.title}"
+// Light custom 3D: one camera, one light, one orbit.
+const scene = new THREE.Scene();
+const mesh = new THREE.Mesh(
+  new THREE.TorusGeometry(1.4, 0.06, 16, 100),
+  new THREE.MeshStandardMaterial({ color: 0x8b7cff }));
+scene.add(mesh);
+function tick(t) {
+  mesh.rotation.x = t * 0.4;   // ${s.dur.toFixed(1)}s scene
+  mesh.rotation.y = t * 0.6;
+  renderer.render(scene, camera);
+}`;
+  if (s.kind === "particles") return `// ${L} — scene ${s.i+1}: "${s.title}"
+// Particle count scales with the scene (80–220) — it lives in the page.
+const emitter = new Proton.Emitter();
+emitter.rate = new Proton.Rate(new Proton.Span(8, 14), 0.05);
+emitter.addInitialize(new Proton.Mass(1));
+emitter.addInitialize(new Proton.Life(${s.dur.toFixed(1)}, ${s.dur.toFixed(1)}));
+emitter.addBehaviour(new Proton.Alpha(1, 0));
+emitter.emit();  // ${s.words} words, ${s.dur.toFixed(1)}s`;
+  return `// ${L} — scene ${s.i+1}: "${s.title}"
+// Kinetic type: the words are the animation.
+anime.timeline({ easing: "easeOutExpo", duration: 900 })
+  .add({ targets: ".word", opacity: [0, 1],
+         translateY: [24, 0], rotate: [2, 0],
+         delay: anime.stagger(60) })   // ${s.words} words
+  .add({ targets: ".accent", scale: [0.9, 1],
+         duration: 600 }, "-=400");`;
+}
+/* ---------- Canvas renderers ---------- */
+function wrapText(c, text, x, y, maxW, lh, maxLines){
+  const words = text.split(/\s+/); let line="", lines=[];
+  for (const w of words){ const t = line ? line+" "+w : w;
+    if (c.measureText(t).width > maxW && line){ lines.push(line); line=w; } else line=t; }
+  if (line) lines.push(line);
+  lines = lines.slice(0, maxLines||4);
+  lines.forEach((l,i)=>c.fillText(l, x, y + i*lh));
+  return lines.length;
+}
+function easeOut(t){ return 1-Math.pow(1-t,3); }
+function easeInOut(t){ return t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2; }
+function drawScene(c, s, t, W, H){
+  const light = $("style").value === "light";
+  const bg = light ? "#f2f1ec" : "#0a0a09";
+  const ink = light ? "#141412" : "#f2f1ec";
+  const mut = light ? "#6f6e66" : "#a6a59d";
+  c.fillStyle = bg; c.fillRect(0,0,W,H);
+  // film grain dots (subtle)
+  c.fillStyle = light ? "rgba(0,0,0,0.03)" : "rgba(255,255,255,0.025)";
+  for (let i=0;i<90;i++){ const x=(i*97)%W, y=(i*57)%H; c.fillRect(x,y,1.5,1.5); }
+  const p = Math.min(1, t / s.dur); // 0..1 through the scene
+  const cx = W/2, cy = H/2;
+  if (s.kind === "diagram"){
+    const nums = numbersFor(s.text);
+    const vals = nums.values;
+    const max = Math.max(...vals);
+    c.textAlign="left";
+    c.fillStyle = ink; c.font="700 34px 'Space Grotesk', sans-serif";
+    wrapText(c, s.title, 48, 132, W-96, 42, 2);
+    const bw = 72, gap = 34, base = H-96;
+    const totalW = vals.length*(bw+gap)-gap;
+    const x0 = Math.max(48, (W-totalW)/2);
+    vals.forEach((v,i)=>{
+      const h = Math.max(8, (v/max)*(H-260) * easeOut(Math.min(1, p*1.4 - i*0.08)));
+      const x = x0 + i*(bw+gap);
+      c.fillStyle = i===vals.indexOf(max) ? "#c8f542" : "#6ec3ff";
+      c.globalAlpha = 0.92;
+      c.fillRect(x, base-h, bw, h);
+      c.globalAlpha = 1;
+      c.fillStyle = ink; c.font="600 15px 'JetBrains Mono', monospace"; c.textAlign="center";
+      c.fillText(String(v), x+bw/2, base-h-12);
+      c.fillStyle = mut; c.font="500 12px Inter, sans-serif";
+      c.fillText(nums.fromText ? "value" : "Q"+(i+1), x+bw/2, base+28);
+    });
+    c.textAlign="left"; c.fillStyle = mut; c.font="500 14px Inter, sans-serif";
+    wrapText(c, nums.fromText ? "Bars from the numbers in this scene." : "Sample values — add numbers to your script and the chart uses them.", 48, H-46, W-96, 20, 1);
+  } else if (s.kind === "formula"){
+    c.textAlign="center";
+    c.fillStyle = ink; c.font="700 44px 'Space Grotesk', sans-serif";
+    const a = easeOut(Math.min(1, p*2));
+    c.globalAlpha = a;
+    wrapText(c, s.title, cx, cy-70, 640, 52, 2);
+    c.globalAlpha = 1;
+    // axes + a rising curve, drawn progressively
+    c.strokeStyle = light ? "#141412" : "#f2f1ec"; c.lineWidth = 2;
+    c.beginPath(); c.moveTo(cx-260, cy+90); c.lineTo(cx+260, cy+90); c.moveTo(cx-260, cy+90); c.lineTo(cx-260, cy-40); c.stroke();
+    c.strokeStyle = "#ffb454"; c.lineWidth = 4; c.beginPath();
+    for (let x=0;x<=520*p;x+=8){ const xx=cx-260+x, yy=cy+90-Math.pow(x/520,2)*110; x===0?c.moveTo(xx,yy):c.lineTo(xx,yy); }
+    c.stroke();
+    // (Round 2: the key sentence used to render here in amber too, duplicating
+    // the title above it — it stays in Director's choices and generated code.)
+    c.fillStyle = mut; c.font="500 14px Inter, sans-serif";
+    c.fillText(s.words + " words · " + s.dur.toFixed(1) + "s", cx, cy+196);
+  } else if (s.kind === "orbit"){
+    c.textAlign="center";
+    const rot = p * Math.PI * 2;
+    c.strokeStyle = "#8b7cff"; c.lineWidth = 3;
+    c.save(); c.translate(cx, cy-10);
+    c.beginPath(); c.ellipse(0,0, 220, 220*0.34, 0, 0, Math.PI*2); c.stroke();
+    c.beginPath(); c.ellipse(0,0, 150, 150*0.34, 0.5, 0, Math.PI*2); c.globalAlpha=.5; c.stroke(); c.globalAlpha=1;
+    const bx = Math.cos(rot)*220, by = Math.sin(rot)*220*0.34;
+    c.fillStyle = "#c8f542"; c.beginPath(); c.arc(bx, by, 14, 0, Math.PI*2); c.fill();
+    c.fillStyle = ink; c.beginPath(); c.arc(0,0, 44, 0, Math.PI*2); c.fill();
+    c.fillStyle = light ? "#f2f1ec" : "#101010"; c.font="700 15px 'Space Grotesk', sans-serif";
+    c.fillText("3D", 0, 5);
+    c.restore();
+    c.fillStyle = ink; c.font="700 32px 'Space Grotesk', sans-serif";
+    wrapText(c, s.title, cx, cy+150, 720, 40, 2);
+  } else if (s.kind === "particles"){
+    c.textAlign="center";
+    // Particle count scales with the scene: short scene 80, long scene 220.
+    const pCount = Math.round(80 + Math.min(1, s.words / 120) * 140);
+    const seed = s.i*7919+13;
+    for (let i=0;i<pCount;i++){
+      const ang = ((seed + i*137.5) % 360) * Math.PI/180;
+      const dist = ((seed*7 + i*61) % 240) + 30;
+      const life = Math.max(0, Math.min(1, p*2 - (i%10)/14));
+      const x = cx + Math.cos(ang)*dist*(0.3+life), y = cy-20 + Math.sin(ang)*dist*0.7*(0.3+life) - life*40;
+      const cols = ["#ff7ab8","#c8f542","#ffb454","#8b7cff","#6ec3ff"];
+      c.globalAlpha = (1-life)*0.95;
+      c.fillStyle = cols[i%5];
+      c.beginPath(); c.arc(x, y, 2 + (i%4), 0, Math.PI*2); c.fill();
+    }
+    c.globalAlpha = 1;
+    c.fillStyle = ink; c.font="700 40px 'Space Grotesk', sans-serif";
+    const a = easeOut(Math.min(1, p*2.5));
+    c.globalAlpha = a;
+    wrapText(c, s.title, cx, cy-30, 720, 48, 2);
+    c.globalAlpha = 1;
+  } else { // kinetic type
+    c.textAlign="left";
+    c.fillStyle = ink; c.font="700 44px 'Space Grotesk', sans-serif";
+    const words = s.text.split(/\s+/);
+    const shown = Math.max(1, Math.floor(words.length * easeOut(Math.min(1, p*1.6))));
+    // Wrap the shown words, then fix the orphan: a lone short word on the
+    // last line reads as a layout bug, so pull the previous word down with it.
+    // NOTE: the font must be set before measuring, or measureText uses the
+    // previous scene's font and the lines overflow the stage.
+    const shownWords = words.slice(0, shown).map((w,i)=>({w, idx:i}));
+    const lines = [];
+    { let line = [];
+      for (const item of shownWords){ const t = line.length ? line.map(o=>o.w).join(" ")+" "+item.w : item.w;
+        if (c.measureText(t).width > W-96 && line.length){ lines.push(line); line = [item]; } else line.push(item); }
+      if (line.length) lines.push(line);
+      const last = lines[lines.length-1];
+      if (lines.length > 1 && last && last.length === 1 && last[0].w.length <= 3){
+        const moved = lines[lines.length-2].pop();
+        lines[lines.length-1] = [moved, ...last];
+      } }
+    c.fillStyle = ink; c.font="700 44px 'Space Grotesk', sans-serif";
+    lines.forEach((lineItems, li)=>{
+      let x=48; const y=175 + li*58;
+      lineItems.forEach((item)=>{
+        const ww = c.measureText(item.w+" ").width;
+        const local = Math.max(0, Math.min(1, (p*1.6*words.length - item.idx)/3));
+        c.globalAlpha = easeOut(local);
+        const hot = /Director|script|pixel|launch|light/i.test(item.w);
+        c.fillStyle = hot ? "#c8f542" : ink;
+        c.fillText(item.w, x, y + (1-easeOut(local))*18);
+        x += ww;
+      });
+    });
+    c.globalAlpha = 1;
+    c.fillStyle = mut; c.font="500 14px Inter, sans-serif";
+    c.fillText(s.words + " words · " + s.dur.toFixed(1) + "s · kinetic type, stagger 60ms", 48, H-40);
+  }
+  // progress hairline
+  c.fillStyle = light ? "rgba(0,0,0,0.14)" : "rgba(255,255,255,0.14)"; c.fillRect(0, H-4, W, 4);
+  c.fillStyle = "#c8f542"; c.fillRect(0, H-4, W*p, 4);
+}
+/* ---------- Code highlighting (lightweight, no library) ---------- */
+const CODE_KEYWORDS = new Set(["const","let","var","function","return","new","class","def","yield","yield*","import","from","self","if","else","for","while","in","of","true","false","null","this","await","async"]);
+function escHtml(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function highlightCode(code){
+  let out = "", i = 0, n = code.length;
+  while (i < n){
+    // comment to end of line: // ... or a Python # at line start
+    if (code.startsWith("//", i) || (code[i] === "#" && (i === 0 || code[i-1] === "\n"))){
+      let j = code.indexOf("\n", i); if (j === -1) j = n;
+      out += '<span class="c">' + escHtml(code.slice(i, j)) + "</span>"; i = j; continue;
+    }
+    const ch = code[i];
+    if (ch === '"' || ch === "'" || ch === "`"){
+      let j = i + 1;
+      while (j < n && code[j] !== ch){ if (code[j] === "\\") j++; j++; }
+      j = Math.min(n, j + 1);
+      out += '<span class="s">' + escHtml(code.slice(i, j)) + "</span>"; i = j; continue;
+    }
+    if (/[A-Za-z_$]/.test(ch)){
+      let j = i + 1;
+      while (j < n && /[A-Za-z0-9_$]/.test(code[j])) j++;
+      const word = code.slice(i, j);
+      out += CODE_KEYWORDS.has(word) ? '<span class="k">' + word + "</span>" : escHtml(word);
+      i = j; continue;
+    }
+    out += escHtml(ch); i++;
+  }
+  return out;
+}
+/* ---------- Player ---------- */
+function totalDur(){ return scenes.reduce((a,s)=>a+s.dur,0); }
+function fmt(sec){ const m=Math.floor(sec/60), s=Math.floor(sec%60); return m+":" + String(s).padStart(2,"0"); }
+function sceneAt(time){
+  let acc=0;
+  for (let i=0;i<scenes.length;i++){ if (time < acc+scenes[i].dur) return {i, into: time-acc}; acc+=scenes[i].dur; }
+  return {i: scenes.length-1, into: scenes[scenes.length-1].dur};
+}
+function tick(ts){
+  if (!playing){ lastTs = ts; raf = requestAnimationFrame(tick); return; }
+  if (lastTs == null) lastTs = ts;
+  const dt = Math.min(0.1, (ts-lastTs)/1000); lastTs = ts;
+  sceneT += dt;
+  let {i, into} = sceneAt(sceneStart(current)+sceneT);
+  if (i !== current){ current = i; sceneT = into; renderUI(); }
+  if (sceneStart(current)+sceneT >= totalDur()){ pause(); sceneT = scenes[current].dur; }
+  drawCurrent(); updateTransport();
+  raf = requestAnimationFrame(tick);
+}
+function startLoop(){ if (raf) cancelAnimationFrame(raf); raf = requestAnimationFrame(tick); }
+/* Pause when the tab is hidden, so a hidden player does not burn CPU
+   and the clock does not jump forward on return. */
+document.addEventListener("visibilitychange", ()=>{ if (document.hidden) pause(); });
+function sceneStart(i){ return scenes.slice(0,i).reduce((a,s)=>a+s.dur,0); }
+/* The canvas buffer follows its container, not a hard-coded 960x540:
+   drawing stays in a 960x540 logical space, scaled by setTransform,
+   so the layout is identical at any stage width (incl. mobile). */
+let viewScale = 1;
+function resizeCanvas(){
+  const stage = canvas.parentElement;
+  const cssW = Math.max(240, stage.clientWidth || 960);
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  canvas.width = Math.round(cssW * dpr);
+  canvas.height = Math.round(cssW * 9 / 16 * dpr);
+  viewScale = canvas.width / 960;
+  drawCurrent();
+}
+function drawCurrent(){
+  if (!scenes.length) return;
+  const previewT = (!playing && sceneT === 0)
+    ? (scenes[current].kind === "kinetic" ? scenes[current].dur : scenes[current].dur * 0.55)
+    : sceneT;
+  ctx.setTransform(viewScale, 0, 0, viewScale, 0, 0);
+  drawScene(ctx, scenes[current], previewT, 960, 540);
+}
+function updateTransport(){
+  const t = sceneStart(current)+sceneT, total = totalDur();
+  $("scrub").value = total ? Math.round(t/total*1000) : 0;
+  $("timeLabel").textContent = fmt(t) + " / " + fmt(total);
+}
+function play(){ if (!scenes.length){ alert("Direct a script first — pick a preset, then click “Direct my animation”."); return; } playing = true; $("playBtn").textContent = "❚❚"; lastTs = null; }
+function pause(){ playing = false; $("playBtn").textContent = "▶"; }
+function goToScene(i){
+  current = Math.max(0, Math.min(scenes.length-1, i)); sceneT = 0;
+  drawCurrent(); renderUI(); updateTransport();
+}
+function renderUI(){
+  // tabs
+  const tabs = $("sceneTabs"); tabs.innerHTML = "";
+  scenes.forEach((s,i)=>{
+    const b = document.createElement("button");
+    b.className = "scene-tab" + (i===current ? " active" : "");
+    b.innerHTML = `<div class="s-n">Scene ${i+1} · ${s.dur.toFixed(1)}s</div><div class="s-t"></div><div class="s-m">${s.lib.name} — ${s.lib.tag}</div>`;
+    b.querySelector(".s-t").textContent = s.title;
+    b.onclick = ()=>{ goToScene(i); };
+    tabs.appendChild(b);
+  });
+  // stage overlay + code
+  const s = scenes[current];
+  $("stageLib").textContent = s.lib.name + " · " + s.lib.tag;
+  $("stageLib").style.color = s.lib.color;
+  $("stageScene").textContent = "Scene " + (current+1) + " of " + scenes.length;
+  $("codeTitle").textContent = "Scene " + (current+1) + " — " + s.lib.name;
+  $("codeSub").textContent = s.title;
+  $("codeView").innerHTML = highlightCode(codeFor(s));
+  // decisions
+  const d = $("decisions"); d.innerHTML = "";
+  scenes.forEach((sc,i)=>{
+    const div = document.createElement("div");
+    div.className = "decision";
+    div.innerHTML = `<div class="num">${String(i+1).padStart(2,"0")}</div>
+      <div><h3><span class="lib">${sc.lib.name}</span> — ${sc.lib.tag}</h3><p></p><div class="sig"><b>Matched on:</b> <span></span></div></div>
+      <div class="why"><b>Why this one:</b> ${sc.lib.why}<div class="job"></div><div class="not">Not chosen: ${sc.lib.not}</div></div>`;
+    div.querySelector("p").textContent = sc.text;
+    div.querySelector(".sig span").textContent = sc.signal.join(", ");
+    div.querySelector(".job").textContent = "In this scene: " + sceneJobSafe(sc);
+    d.appendChild(div);
+  });
+  // stats
+  const libs = [...new Set(scenes.map(s=>s.lib.name))];
+  $("stats").innerHTML = `
+    <div class="stat"><div class="v">${scenes.length}</div><div class="k">scenes</div></div>
+    <div class="stat"><div class="v">${fmt(totalDur())}</div><div class="k">total runtime</div></div>
+    <div class="stat"><div class="v">${libs.length}</div><div class="k">libraries cast · ${libs.join(" · ")}</div></div>
+    <div class="stat"><div class="v">${scenes.reduce((a,s)=>a+s.words,0)}</div><div class="k">words in script</div></div>`;
+  // library list (once)
+  if (!$("libraryList").dataset.done){
+    $("libraryList").dataset.done = "1";
+    LIBRARY_LIST.forEach(([n,tag,desc,repo])=>{
+      const div = document.createElement("div");
+      div.className = "decision";
+      div.innerHTML = `<div class="num">·</div><div><h3>${n} — <span class="lib">${tag}</span></h3><p>${desc}</p></div><div class="why">Studied 2026-11-20 · 18 libraries · <a href="${repo}" target="_blank" rel="noopener">source on GitHub</a></div>`;
+      $("libraryList").appendChild(div);
+    });
+  }
+}
+function analyze(){
+  const raw = $("script").value.trim();
+  if (!raw){ alert("Type or pick a script first."); return; }
+  // Symbol-only / empty input (e.g. "!!!", "   ") has nothing to direct.
+  if (!raw.replace(/[^A-Za-z0-9\u4e00-\u9fff]/g, "")){ alert("Type a script with some words first."); return; }
+  scenes = parseScript(raw);
+  current = 0; sceneT = 0; pause();
+  resizeCanvas(); renderUI(); updateTransport();
+}
+/* ---------- Wire up ---------- */
+$("presets").innerHTML = "";
+Object.entries(PRESETS).forEach(([key,p],idx)=>{
+  const b = document.createElement("button");
+  b.className = "chip" + (idx===0 ? " active" : "");
+  b.textContent = p.label;
+  b.onclick = ()=>{
+    // Fill the textarea only — do not auto-analyze, or a preset click
+    // wipes the cut the user is watching mid-playback.
+    document.querySelectorAll("#presets .chip").forEach(c=>c.classList.remove("active"));
+    b.classList.add("active");
+    $("script").value = p.text;
+  };
+  $("presets").appendChild(b);
+});
+$("script").value = PRESETS.launch.text;
+$("analyze").onclick = analyze;
+$("pacing").onchange = analyze;
+$("style").onchange = ()=>{ document.body.dataset.theme = $("style").value; resizeCanvas(); };
+$("playBtn").onclick = ()=>{ playing ? pause() : play(); };
+$("prevBtn").onclick = ()=>goToScene(current-1);
+$("nextBtn").onclick = ()=>goToScene(current+1);
+$("scrub").oninput = e=>{
+  const t = e.target.value/1000 * totalDur();
+  const {i, into} = sceneAt(t); current=i; sceneT=into;
+  // Scrubbing is per-frame: redraw + clock only, no full re-render
+  // (renderUI rebuilds every tab and decision, which janks the drag).
+  drawCurrent(); updateTransport();
+};
+// Full UI refresh once the drag is released, so tabs/code catch up.
+$("scrub").onchange = ()=>{ renderUI(); };
+$("copyBtn").onclick = async ()=>{
+  const btn = $("copyBtn"), orig = btn.textContent;
+  try{ await navigator.clipboard.writeText($("codeView").textContent); btn.textContent="Copied ✓"; setTimeout(()=>{ btn.textContent=orig; },1500); }
+  catch(e){ btn.textContent="Copy failed — please select & copy manually"; setTimeout(()=>{ btn.textContent=orig; },1500); }
+};
+$("exportBtn").onclick = ()=>{
+  const btn = $("exportBtn"), orig = btn.textContent;
+  try{
+    const data = {project:"Director — AI Animation Director", hackathon:"SLAY HACKS 2026",
+      totalSeconds: +totalDur().toFixed(1),
+      scenes: scenes.map(s=>({scene:s.i+1, title:s.title, words:s.words, seconds:+s.dur.toFixed(1),
+        library:s.lib.name, engine:s.lib.engine, signal:s.signal, reason:s.lib.why, text:s.text}))};
+    const json = JSON.stringify(data, null, 2);
+    if (json.length > 120*1024 && !confirm("Storyboard is " + Math.round(json.length/1024) + " KB — download anyway?")) return;
+    const blob = new Blob([json], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "director-storyboard.json";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 1000);
+    btn.textContent = "Saved ✓"; setTimeout(()=>{ btn.textContent = orig; }, 1500);
+  } catch(e){
+    btn.textContent = "Export failed — try again"; setTimeout(()=>{ btn.textContent = orig; }, 1500);
+  }
+};
+analyze();
+resizeCanvas();
+startLoop();
+if (window.ResizeObserver){
+  new ResizeObserver(()=>{ resizeCanvas(); }).observe(canvas.parentElement);
+} else {
+  window.addEventListener("resize", resizeCanvas);
+}
+</script>
+</body>
+</html>
